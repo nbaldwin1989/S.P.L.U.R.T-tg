@@ -1,91 +1,58 @@
-```yaml
-# In Resources/Prototypes/_NF/Entities/Structures/Decoration/paintings.yml (or entity definition for PaintingFrameLarge)
-# Ensure PaintingFrameLarge has the Construction component referencing the graph and node:
-- type: entity
-  id: PaintingFrameLarge
-  parent: PaintingFrame
-  name: large painting frame
-  description: A large wooden frame for hanging paintings.
-  components:
-  - type: Sprite
-    sprite: _NF/Structures/Decoration/paintings.rsi
-    state: frame_large
-  - type: PaintingFrame
-    width: 2
-    height: 2
-  - type: Construction
-    graph: PaintingFrame
-    node: paintingFrameLarge
-```
-
-```yaml
-# In Resources/Prototypes/_NF/Recipes/Construction/Graphs/furniture/painting_frame.yml (or wherever the PaintingFrame construction graph is located)
-- type: constructionGraph
-  id: PaintingFrame
-  start: start
-  graph:
-    - node: start
-      edges:
-        - to: paintingFrame
-          completed:
-            - !type:SnapToGrid {}
-          steps:
-            - material: Wood
-              amount: 2
-              doAfter: 1
-        - to: paintingFrameLarge
-          completed:
-            - !type:SnapToGrid {}
-          steps:
-            - material: Wood
-              amount: 4
-              doAfter: 2
-
-    - node: paintingFrame
-      entity: PaintingFrame
-      edges:
-        - to: start
-          completed:
-            - !type:SpawnPrototype
-              prototype: MaterialWoodPlank1
-              amount: 2
-            - !type:DeleteEntity {}
-          steps:
-            - tool: Prying
-              doAfter: 1
-
-    - node: paintingFrameLarge
-      entity: PaintingFrameLarge
-      edges:
-        - to: start
-          completed:
-            - !type:SpawnPrototype
-              prototype: MaterialWoodPlank1
-              amount: 4
-            - !type:DeleteEntity {}
-          steps:
-            - tool: Prying
-              doAfter: 2
-
-- type: construction
-  id: PaintingFrameLarge
-  name: large painting frame
-  category: construction-category-furniture
-  crafting: true
-  graph: PaintingFrame
-  startNode: start
-  targetNode: paintingFrameLarge
-```
-
-```yaml
-# In Resources/Prototypes/_NF/Catalog/Cargo/market.yml (or wherever market products are defined)
-- type: cargoProduct
-  id: PaintingFrameLarge
-  icon:
-    sprite: _NF/Structures/Decoration/paintings.rsi
-    state: frame_large
-  product: PaintingFrameLarge
-  cost: 200
-  category: cargo-category-service
-  group: market
+```diff
+--- a/code/modules/art/paintings.dm
++++ b/code/modules/art/paintings.dm
+@@ -8,6 +8,13 @@
+ 	pixel_shift = 28
+ 	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 2)
+ 
++/obj/item/wallframe/painting/large
++	name = "large painting frame"
++	desc = "A large frame for a painting, to be hung on a wall."
++	icon_state = "large_frame_item"
++	result_path = /obj/structure/sign/painting/large
++	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 4)
++
+ /obj/structure/sign/painting
+ 	name = "painting"
+ 	desc = "Art, or something resembling it."
+--- a/code/modules/crafting/recipes.dm
++++ b/code/modules/crafting/recipes.dm
+@@ -1023,6 +1023,15 @@
+ 	time = 20
+ 	category = CAT_STRUCTURE
+ 
++/datum/crafting_recipe/painting_frame_large
++	name = "Large Painting Frame"
++	result = /obj/item/wallframe/painting/large
++	reqs = list(
++		/obj/item/stack/sheet/mineral/wood = 4,
++	)
++	time = 20
++	category = CAT_STRUCTURE
++
+ /datum/crafting_recipe/easel
+ 	name = "Easel"
+ 	result = /obj/item/easel
+--- a/code/modules/cargo/supply_packs/service.dm
++++ b/code/modules/cargo/supply_packs/service.dm
+@@ -75,7 +75,21 @@
+ 		/obj/item/canvasbox,
+ 		/obj/item/wallframe/painting,
+ 		/obj/item/wallframe/painting,
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
+ 	)
+ 	crate_name = "art supplies crate"
+ 
++/datum/supply_pack/service/large_painting_frames
++	name = "Large Painting Frames Crate"
++	desc = "Contains two large painting frames for framing expansive works of art."
++	cost = 1000
++	access = ACCESS_SERVICE
++	contains = list(
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
++	)
++	crate_name = "large painting frames crate"
++
 ```

@@ -1,54 +1,91 @@
-```diff
---- a/code/modules/crafting/crafting_recipes/decorations.dm
-+++ b/code/modules/crafting/crafting_recipes/decorations.dm
-@@ -40,3 +40,23 @@
- 	time = 10
- 	category = CAT_ENTERTAINMENT
- 
-+/datum/crafting_recipe/canvas_23x19
-+	name = "Canvas (23x19)"
-+	result = /obj/item/canvas/twentythree_nineteen
-+	reqs = list(
-+		/obj/item/stack/sheet/mineral/wood = 2,
-+		/obj/item/stack/sheet/cloth = 2,
-+	)
-+	time = 10
-+	category = CAT_ENTERTAINMENT
-+
-+/datum/crafting_recipe/canvas_23x23
-+	name = "Canvas (23x23)"
-+	result = /obj/item/canvas/twentythree_twentythree
-+	reqs = list(
-+		/obj/item/stack/sheet/mineral/wood = 3,
-+		/obj/item/stack/sheet/cloth = 3,
-+	)
-+	time = 10
-+	category = CAT_ENTERTAINMENT
-+
---- a/code/modules/cargo/supply_packs/service.dm
-+++ b/code/modules/cargo/supply_packs/service.dm
-@@ -102,9 +102,23 @@
- 		/obj/item/canvas,
- 		/obj/item/canvas/nineteen_nineteen,
- 		/obj/item/canvas/nineteen_nineteen,
-+		/obj/item/canvas/twentythree_nineteen,
-+		/obj/item/canvas/twentythree_twentythree,
- 		/obj/item/storage/crayons,
- 		/obj/item/paint_palette,
- 	)
- 	crate_name = "art supplies crate"
- 	crate_type = /obj/structure/closet/crate
- 
-+/datum/supply_pack/service/art_large
-+	name = "Large Canvases Crate"
-+	desc = "Contains several large canvases for ambitious artists."
-+	cost = 1200
-+	contains = list(
-+		/obj/item/canvas/twentythree_nineteen,
-+		/obj/item/canvas/twentythree_nineteen,
-+		/obj/item/canvas/twentythree_twentythree,
-+		/obj/item/canvas/twentythree_twentythree,
-+	)
-+	crate_name = "large canvases crate"
-+	crate_type = /obj/structure/closet/crate
+```yaml
+# In Resources/Prototypes/_NF/Entities/Structures/Decoration/paintings.yml (or entity definition for PaintingFrameLarge)
+# Ensure PaintingFrameLarge has the Construction component referencing the graph and node:
+- type: entity
+  id: PaintingFrameLarge
+  parent: PaintingFrame
+  name: large painting frame
+  description: A large wooden frame for hanging paintings.
+  components:
+  - type: Sprite
+    sprite: _NF/Structures/Decoration/paintings.rsi
+    state: frame_large
+  - type: PaintingFrame
+    width: 2
+    height: 2
+  - type: Construction
+    graph: PaintingFrame
+    node: paintingFrameLarge
+```
+
+```yaml
+# In Resources/Prototypes/_NF/Recipes/Construction/Graphs/furniture/painting_frame.yml (or wherever the PaintingFrame construction graph is located)
+- type: constructionGraph
+  id: PaintingFrame
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: paintingFrame
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: Wood
+              amount: 2
+              doAfter: 1
+        - to: paintingFrameLarge
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: Wood
+              amount: 4
+              doAfter: 2
+
+    - node: paintingFrame
+      entity: PaintingFrame
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 2
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 1
+
+    - node: paintingFrameLarge
+      entity: PaintingFrameLarge
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 4
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 2
+
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  category: construction-category-furniture
+  crafting: true
+  graph: PaintingFrame
+  startNode: start
+  targetNode: paintingFrameLarge
+```
+
+```yaml
+# In Resources/Prototypes/_NF/Catalog/Cargo/market.yml (or wherever market products are defined)
+- type: cargoProduct
+  id: PaintingFrameLarge
+  icon:
+    sprite: _NF/Structures/Decoration/paintings.rsi
+    state: frame_large
+  product: PaintingFrameLarge
+  cost: 200
+  category: cargo-category-service
+  group: market
 ```

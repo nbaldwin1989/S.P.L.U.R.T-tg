@@ -1,64 +1,79 @@
 ```diff
-diff --git a/Resources/Prototypes/Entities/Containers/Crates/fun.yml b/Resources/Prototypes/Entities/Containers/Crates/fun.yml
-index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Entities/Containers/Crates/fun.yml
-+++ b/Resources/Prototypes/Entities/Containers/Crates/fun.yml
-@@ -25,3 +25,5 @@
-       - id: CanvasLarge
-         amount: 1
-       - id: PaintingFrame
-         amount: 2
-+      - id: PaintingFrameLarge
-+        amount: 2
-diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
-index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
-@@ -10,6 +10,13 @@
-           steps:
-             - material: WoodPlank
-               amount: 2
-               doAfter: 2
-+        - to: paintingFrameLarge
-+          completed:
-+            - !type:SnapToGrid {}
-+          steps:
-+            - material: WoodPlank
-+              amount: 4
-+              doAfter: 2
-     - node: paintingFrame
-       entity: PaintingFrame
-       edges:
-@@ -21,3 +28,14 @@
-           steps:
-             - tool: Prying
-               doAfter: 2
-+    - node: paintingFrameLarge
-+      entity: PaintingFrameLarge
-+      edges:
-+        - to: start
-+          completed:
-+            - !type:SpawnPrototype
-+              prototype: MaterialWoodPlank1
-+              amount: 4
-+            - !type:DeleteEntity {}
-+          steps:
-+            - tool: Prying
-+              doAfter: 2
-diff --git a/Resources/Prototypes/Recipes/Construction/furniture.yml b/Resources/Prototypes/Recipes/Construction/furniture.yml
-index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Recipes/Construction/furniture.yml
-+++ b/Resources/Prototypes/Recipes/Construction/furniture.yml
-@@ -40,3 +40,10 @@
-   graph: PaintingFrame
-   startNode: start
-   targetNode: paintingFrame
-   category: construction-category-furniture
+--- a/code/modules/art/paintings.dm
++++ b/code/modules/art/paintings.dm
+@@ -43,6 +43,14 @@
+ 	result_path = /obj/structure/sign/painting
+ 	custom_materials = list(/datum/material/wood = 2000)
+ 
++/obj/item/wallframe/painting/large
++	name = "large painting frame"
++	desc = "A large wooden frame for hanging paintings."
++	icon_state = "frame_large"
++	result_path = /obj/structure/sign/painting/large
++	custom_materials = list(/datum/material/wood = 4000)
 +
-+- type: construction
-+  id: PaintingFrameLarge
-+  graph: PaintingFrame
-+  startNode: start
-+  targetNode: paintingFrameLarge
-+  category: construction-category-furniture
+ /obj/structure/sign/painting
+ 	name = "painting"
+ 	desc = "A framed painting."
+@@ -52,6 +60,7 @@
+ 	var/obj/item/canvas/current_canvas
+ 	var/frame_type = "frame"
+ 	var/persistence_id
++	var/wallframe_type = /obj/item/wallframe/painting
+ 
+ /obj/structure/sign/painting/deconstruct(disassembled = TRUE)
+ 	if(current_canvas)
+ 		current_canvas.forceMove(drop_location())
+ 		current_canvas = null
+ 	if(disassembled)
+-		new /obj/item/wallframe/painting(drop_location())
++		new wallframe_type(drop_location())
+ 	qdel(src)
+ 
+ /obj/structure/sign/painting/large
+ 	name = "large painting"
+ 	desc = "A large framed painting."
+ 	icon_state = "frame_large"
+ 	frame_type = "frame_large"
++	wallframe_type = /obj/item/wallframe/painting/large
+```
+
+```diff
+--- a/code/modules/crafting/recipes/furniture.dm
++++ b/code/modules/crafting/recipes/furniture.dm
+@@ -35,6 +35,13 @@
+ 	time = 30
+ 	category = CAT_FURNITURE
+ 
++/datum/crafting_recipe/painting_frame_large
++	name = "Large Painting Frame"
++	result = /obj/item/wallframe/painting/large
++	reqs = list(/obj/item/stack/sheet/mineral/wood = 4)
++	time = 40
++	category = CAT_FURNITURE
++
+```
+
+```diff
+--- a/code/modules/vending/art.dm
++++ b/code/modules/vending/art.dm
+@@ -16,6 +16,7 @@
+ 		/obj/item/canvas/twenty_three_nineteen = 5,
+ 		/obj/item/canvas/twenty_three_twenty_three = 5,
+ 		/obj/item/wallframe/painting = 5,
++		/obj/item/wallframe/painting/large = 5,
+ 		/obj/item/paint_palette = 2
+ 	)
+```
+
+```diff
+--- a/code/modules/cargo/packs/service.dm
++++ b/code/modules/cargo/packs/service.dm
+@@ -23,6 +23,7 @@
+ 		/obj/item/canvas/twenty_three_nineteen = 2,
+ 		/obj/item/canvas/twenty_three_twenty_three = 2,
+ 		/obj/item/wallframe/painting = 2,
++		/obj/item/wallframe/painting/large = 2,
+ 		/obj/item/paint_palette = 2
+ 	)
 ```

@@ -1,88 +1,95 @@
-```diff
-diff --git a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-index b28b1e42f..6dfd5464a 100644
---- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-+++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-@@ -52,5 +52,8 @@
-   description: An empty large frame for a painting.
-   components:
-   - type: Sprite
-     state: frame_large
-+  - type: Construction
-+    graph: PaintingFrame
-+    node: paintingFrameLarge
-   - type: PaintingFrame
-diff --git a/Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml b/Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml
-index c8706bdae..62d29486c 100644
---- a/Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml
-+++ b/Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml
-@@ -482,6 +482,8 @@
-         amount: 2
-       - id: PaintingFrame
-         amount: 3
-+      - id: PaintingFrameLarge
-+        amount: 2
- 
- - type: entity
-   id: CratePirate
-diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml b/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml
-index a7372d6ff..05d3b664d 100644
---- a/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml
-@@ -10,6 +10,12 @@
-             - material: WoodPlank
-               amount: 1
-               doAfter: 1
-+        - to: paintingFrameLarge
-+          completed:
-+            - !type:SnapToGrid {}
-+          steps:
-+            - material: WoodPlank
-+              amount: 2
-+              doAfter: 1
- 
-     - node: paintingFrame
-       entity: PaintingFrame
-@@ -21,3 +27,14 @@
-             - !type:DeleteEntity {}
-           steps:
-             - tool: Prying
-+              doAfter: 1
-+
-+    - node: paintingFrameLarge
-+      entity: PaintingFrameLarge
-+      edges:
-+        - to: start
-+          completed:
-+            - !type:SpawnPrototype
-+              prototype: MaterialWoodPlank1
-+              amount: 2
-+            - !type:DeleteEntity {}
-+          steps:
-+            - tool: Prying
-+              doAfter: 1
-diff --git a/Resources/Prototypes/Recipes/Construction/structures.yml b/Resources/Prototypes/Recipes/Construction/structures.yml
-index 28dfd9ea8..6da0d85a1 100644
---- a/Resources/Prototypes/Recipes/Construction/structures.yml
-+++ b/Resources/Prototypes/Recipes/Construction/structures.yml
-@@ -158,6 +158,17 @@
-     state: frame
-   objectType: Structure
- 
-+- type: construction
-+  id: PaintingFrameLarge
-+  name: large painting frame
-+  category: construction-category-structures
-+  graph: PaintingFrame
-+  startNode: start
-+  targetNode: paintingFrameLarge
-+  description: An empty large frame for a painting.
-+  icon:
-+    sprite: Structures/Decoration/paintings.rsi
-+    state: frame_large
-+  objectType: Structure
-+
- - type: construction
-   id: NoticeBoard
-   name: notice board
+### Implementation
+
+#### 1. Entity Prototype (if not already defined)
+In `Resources/Prototypes/_NF/Entities/Objects/Decoration/art.yml` (or `paintings.yml`):
+
+```yaml
+- type: entity
+  name: large painting frame
+  id: PaintingFrameLarge
+  parent: PaintingFrame
+  description: A large wooden frame for displaying paintings.
+  components:
+  - type: Sprite
+    state: frame_large
+  - type: PaintingFrame
+    size: Large
+```
+
+---
+
+#### 2. Crafting Recipes (Construction Graph & Construction Prototype)
+In `Resources/Prototypes/_NF/Recipes/Construction/Graphs/items/painting_frame.yml`:
+
+```yaml
+- type: constructionGraph
+  id: PaintingFrameLarge
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: frame
+          steps:
+            - material: Wood
+              amount: 4
+              doAfter: 2
+    - node: frame
+      entity: PaintingFrameLarge
+```
+
+In `Resources/Prototypes/_NF/Recipes/Construction/furniture.yml` (or `items.yml`):
+
+```yaml
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  category: construction-category-furniture
+  graph: PaintingFrameLarge
+  startNode: start
+  targetNode: frame
+  description: A large wooden frame for displaying paintings.
+  icon:
+    sprite: _NF/Objects/Decoration/art.rsi
+    state: frame_large
+  objectType: Item
+```
+
+---
+
+#### 3. Buying (Market & Cargo Orders)
+In `Resources/Prototypes/_NF/Catalog/Cargo/fun.yml` (or `market.yml`):
+
+```yaml
+- type: cargoProduct
+  id: PaintingFrameLarge
+  icon:
+    sprite: _NF/Objects/Decoration/art.rsi
+    state: frame_large
+  product: PaintingFrameLarge
+  cost: 250
+  category: cargo-product-category-fun
+  group: market
+
+- type: cargoProduct
+  id: CargoPaintingFrameLarge
+  icon:
+    sprite: _NF/Objects/Decoration/art.rsi
+    state: frame_large
+  product: PaintingFrameLarge
+  cost: 250
+  category: cargo-product-category-fun
+  group: cargo
+```
+
+In `Resources/Prototypes/_NF/Entities/Containers/Crates/fun.yml` (add to `CrateArtSupplies` storage fill if present):
+
+```yaml
+      - id: PaintingFrameLarge
+        amount: 2
+```
+
+In `Resources/Prototypes/_NF/VendingMachines/Inventories/art.yml` (if art vendor inventory exists):
+
+```yaml
+    PaintingFrameLarge: 5
 ```

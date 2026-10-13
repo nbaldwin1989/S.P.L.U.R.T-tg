@@ -1,78 +1,41 @@
-An implementation to allow large painting frames to be both crafted and bought in cargo:
-
-### 1. `Resources/Prototypes/Entities/Structures/Decoration/paintings.yml`
-Add the `Construction` component (and destructible behavior with appropriate material drops) to `PaintingFrameLarge`:
-
-```yaml
-  - type: Construction
-    graph: PaintingFrameLarge
-    node: paintingFrameLarge
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 100
-      behaviors:
-      - !type:DoActsBehavior
-        acts: ["Destruction"]
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          MaterialWoodPlank1:
-            min: 2
-            max: 4
-```
-
-### 2. `Resources/Prototypes/Recipes/Construction/Graphs/Structures/paintings.yml`
-Add the construction graph and construction recipe for `PaintingFrameLarge`:
-
-```yaml
-- type: constructionGraph
-  id: PaintingFrameLarge
-  start: start
-  graph:
-    - node: start
-      edges:
-        - to: paintingFrameLarge
-          completed:
-            - !type:SnapToGrid {}
-          steps:
-            - material: Wood
-              amount: 4
-              doAfter: 2
-    - node: paintingFrameLarge
-      entity: PaintingFrameLarge
-      edges:
-        - to: start
-          completed:
-            - !type:SpawnPrototype
-              prototype: MaterialWoodPlank1
-              amount: 4
-            - !type:DeleteEntity {}
-          steps:
-            - tool: Prying
-              doAfter: 1
-
-- type: construction
-  id: PaintingFrameLarge
-  name: large painting frame
-  graph: PaintingFrameLarge
-  startNode: start
-  targetNode: paintingFrameLarge
-  category: Structures
-  objectType: Structure
-```
-
-### 3. `Resources/Prototypes/Cargo/cargo_product.yml`
-Add the cargo product entry for `PaintingFrameLarge` under the Service category:
-
-```yaml
-- type: cargoProduct
-  id: ServicePaintingFrameLarge
-  icon:
-    sprite: Structures/Decoration/paintings.rsi
-    state: frame_large
-  product: PaintingFrameLarge
-  cost: 500
-  category: Service
-  group: market
+```diff
+--- a/code/modules/cargo/packs/service.dm
++++ b/code/modules/cargo/packs/service.dm
+@@ -37,6 +37,7 @@
+ 		/obj/item/canvas/twenty_three_nineteen = 2,
+ 		/obj/item/canvas/twenty_three_twenty_three = 2,
+ 		/obj/item/wallframe/painting = 2,
++		/obj/item/wallframe/painting/large = 2,
+ 		/obj/item/clothing/under/costume/artist,
+ 		/obj/item/clothing/head/beret,
+ 		/obj/item/paint_palette,
+@@ -44,3 +45,13 @@
+ 	)
+ 	crate_name = "art supply crate"
+ 
++/datum/supply_pack/service/painting_frames
++	name = "Painting Frames Crate"
++	desc = "Contains two regular painting frames and two large painting frames."
++	cost = 1000
++	contains = list(
++		/obj/item/wallframe/painting = 2,
++		/obj/item/wallframe/painting/large = 2,
++	)
++	crate_name = "painting frame crate"
++
+--- a/code/modules/crafting/crafting_recipes.dm
++++ b/code/modules/crafting/crafting_recipes.dm
+@@ -1025,3 +1025,12 @@
+ 	time = 30
+ 	category = CAT_FURNITURE
+ 
++/datum/crafting_recipe/painting_frame_large
++	name = "Large Painting Frame"
++	result = /obj/item/wallframe/painting/large
++	reqs = list(
++		/obj/item/stack/sheet/mineral/wood = 5,
++	)
++	time = 40
++	category = CAT_FURNITURE
++
 ```

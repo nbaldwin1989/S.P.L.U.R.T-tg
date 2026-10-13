@@ -1,128 +1,68 @@
-An implementation resolving the issue by enabling large painting frames to be crafted via the construction menu and purchased via cargo:
+```yaml
+# Construction Graph & Crafting Recipe for Large Painting Frame
+- type: constructionGraph
+  id: PaintingFrameLarge
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: frame
+          completed:
+            - !type:SpawnPrototype
+              prototype: PaintingFrameLarge
+              amount: 1
+            - !type:DeleteEntity {}
+          steps:
+            - material: Wood
+              amount: 2
+              doAfter: 1
+    - node: frame
+      entity: PaintingFrameLarge
 
-### 1. Construction Graph and Recipe
-Add `paintingFrameLarge` node, edges, and the construction recipe to `Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml`:
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  category: construction-category-items
+  graph: PaintingFrameLarge
+  start: start
+  target: frame
+  objectType: Item
 
-```diff
---- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
-@@ -9,6 +9,12 @@
-           steps:
-             - material: WoodPlank
-               amount: 1
-               doAfter: 1
-+        - to: paintingFrameLarge
-+          completed:
-+            - !type:SnapToGrid {}
-+          steps:
-+            - material: WoodPlank
-+              amount: 2
-+              doAfter: 2
- 
-     - node: paintingFrame
-       entity: PaintingFrame
-@@ -20,6 +26,17 @@
-             - !type:DeleteEntity {}
-           steps:
-             - tool: Prying
-               doAfter: 1
-+
-+    - node: paintingFrameLarge
-+      entity: PaintingFrameLarge
-+      edges:
-+        - to: start
-+          completed:
-+            - !type:SpawnPrototype
-+              prototype: MaterialWoodPlank1
-+              amount: 2
-+            - !type:DeleteEntity {}
-+          steps:
-+            - tool: Prying
-+              doAfter: 1
- 
- - type: construction
-   id: PaintingFrame
-@@ -30,3 +47,12 @@
-   description: painting-frame-construction-description
-   icon:
-     sprite: Structures/Decoration/paintings.rsi
-     state: frame
-+
-+- type: construction
-+  id: PaintingFrameLarge
-+  graph: PaintingFrame
-+  startNode: start
-+  targetNode: paintingFrameLarge
-+  category: construction-category-furniture
-+  description: painting-frame-large-construction-description
-+  icon:
-+    sprite: Structures/Decoration/paintings.rsi
-+    state: frame_large
+# Lathe Recipe
+- type: latheRecipe
+  id: PaintingFrameLarge
+  result: PaintingFrameLarge
+  category: Items
+  materials:
+    Wood: 200
+
+# Cargo Crate
+- type: entity
+  id: CratePaintingFrameLarge
+  parent: CrateWooden
+  name: large painting frames crate
+  description: A crate containing large painting frames.
+  components:
+  - type: StorageFill
+    contents:
+      - id: PaintingFrameLarge
+        amount: 3
+
+# Cargo Product
+- type: cargoProduct
+  id: CratePaintingFrameLarge
+  product: CratePaintingFrameLarge
+  cost: 400
+  category: Service
+  group: market
 ```
 
----
-
-### 2. Localization
-Add the construction description in `Resources/Locale/en-US/construction/construction-graphs.ftl`:
-
 ```diff
---- a/Resources/Locale/en-US/construction/construction-graphs.ftl
-+++ b/Resources/Locale/en-US/construction/construction-graphs.ftl
-@@ -52,3 +52,4 @@
- painting-frame-construction-description = A frame for a painting.
-+painting-frame-large-construction-description = A large frame for a painting.
-```
-
----
-
-### 3. Entity Construction Component
-Link `PaintingFrameLarge` to the construction graph node in `Resources/Prototypes/Entities/Structures/Decoration/paintings.yml`:
-
-```diff
---- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-+++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-@@ -22,6 +22,9 @@
-   components:
-   - type: Sprite
-     state: frame_large
-+  - type: Construction
-+    graph: PaintingFrame
-+    node: paintingFrameLarge
-   - type: ItemSlots
-     slots:
-       canvas:
-```
-
----
-
-### 4. Cargo Order Products
-Add cargo products so painting frames can be purchased in `Resources/Prototypes/Catalog/Cargo/cargo_service.yml`:
-
-```diff
---- a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
-+++ b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
-@@ -104,3 +104,21 @@
-   cost: 650
-   category: Service
-   group: service
-+
-+- type: cargoProduct
-+  id: ServicePaintingFrame
-+  icon:
-+    sprite: Structures/Decoration/paintings.rsi
-+    state: frame
-+  product: PaintingFrame
-+  cost: 100
-+  category: Service
-+  group: service
-+
-+- type: cargoProduct
-+  id: ServicePaintingFrameLarge
-+  icon:
-+    sprite: Structures/Decoration/paintings.rsi
-+    state: frame_large
-+  product: PaintingFrameLarge
-+  cost: 150
-+  category: Service
-+  group: service
+# In CrateArtSupplies (StorageFill contents):
+       - id: CanvasLarge
+         amount: 2
+       - id: PaintingFrame
+         amount: 2
++      - id: PaintingFrameLarge
++        amount: 2
 ```

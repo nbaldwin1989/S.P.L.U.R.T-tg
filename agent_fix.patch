@@ -1,79 +1,85 @@
 ```diff
---- a/code/modules/art/paintings.dm
-+++ b/code/modules/art/paintings.dm
-@@ -43,6 +43,14 @@
- 	result_path = /obj/structure/sign/painting
- 	custom_materials = list(/datum/material/wood = 2000)
+diff --git a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
+index e234567..89abcde 100644
+--- a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
++++ b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
+@@ -105,6 +105,14 @@
+   category: cargo-category-service
+   group: service
  
-+/obj/item/wallframe/painting/large
-+	name = "large painting frame"
-+	desc = "A large wooden frame for hanging paintings."
-+	icon_state = "frame_large"
-+	result_path = /obj/structure/sign/painting/large
-+	custom_materials = list(/datum/material/wood = 4000)
++- type: cargoProduct
++  id: ServicePaintingFrameLarge
++  icon:
++    sprite: Structures/Decoration/paintings_large.rsi
++    state: frame
++  product: PaintingFrameLarge
++  cost: 400
++  category: cargo-category-service
++  group: service
 +
- /obj/structure/sign/painting
- 	name = "painting"
- 	desc = "A framed painting."
-@@ -52,6 +60,7 @@
- 	var/obj/item/canvas/current_canvas
- 	var/frame_type = "frame"
- 	var/persistence_id
-+	var/wallframe_type = /obj/item/wallframe/painting
+ - type: cargoProduct
+   id: ServiceJanitorialFlatpacks
+   product: CrateServiceJanitorialFlatpacks
+diff --git a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
+index a123456..b789cde 100644
+--- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
++++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
+@@ -26,3 +26,6 @@
+   components:
+   - type: Sprite
+     sprite: Structures/Decoration/paintings_large.rsi
++  - type: Construction
++    graph: paintingFrame
++    node: paintingFrameLarge
+diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml
+index c345678..d901234 100644
+--- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml
++++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml
+@@ -10,6 +10,13 @@
+           steps:
+             - material: Wood
+               amount: 2
+               doAfter: 1
++        - to: paintingFrameLarge
++          completed:
++            - !type:SnapToGrid
++              southRotation: true
++          steps:
++            - material: Wood
++              amount: 4
++              doAfter: 2
+     - node: paintingFrame
+       entity: PaintingFrame
+       edges:
+@@ -22,6 +29,18 @@
+           steps:
+             - tool: Prying
+               doAfter: 1
++    - node: paintingFrameLarge
++      entity: PaintingFrameLarge
++      edges:
++        - to: start
++          completed:
++            - !type:SpawnPrototype
++              prototype: MaterialWoodPlank
++              amount: 4
++            - !type:DeleteEntity {}
++          steps:
++            - tool: Prying
++              doAfter: 1
  
- /obj/structure/sign/painting/deconstruct(disassembled = TRUE)
- 	if(current_canvas)
- 		current_canvas.forceMove(drop_location())
- 		current_canvas = null
- 	if(disassembled)
--		new /obj/item/wallframe/painting(drop_location())
-+		new wallframe_type(drop_location())
- 	qdel(src)
- 
- /obj/structure/sign/painting/large
- 	name = "large painting"
- 	desc = "A large framed painting."
- 	icon_state = "frame_large"
- 	frame_type = "frame_large"
-+	wallframe_type = /obj/item/wallframe/painting/large
-```
-
-```diff
---- a/code/modules/crafting/recipes/furniture.dm
-+++ b/code/modules/crafting/recipes/furniture.dm
-@@ -35,6 +35,13 @@
- 	time = 30
- 	category = CAT_FURNITURE
- 
-+/datum/crafting_recipe/painting_frame_large
-+	name = "Large Painting Frame"
-+	result = /obj/item/wallframe/painting/large
-+	reqs = list(/obj/item/stack/sheet/mineral/wood = 4)
-+	time = 40
-+	category = CAT_FURNITURE
+ - type: construction
+   id: PaintingFrame
+@@ -32,3 +51,12 @@
+   category: construction-category-furniture
+   objectType: Structure
 +
-```
-
-```diff
---- a/code/modules/vending/art.dm
-+++ b/code/modules/vending/art.dm
-@@ -16,6 +16,7 @@
- 		/obj/item/canvas/twenty_three_nineteen = 5,
- 		/obj/item/canvas/twenty_three_twenty_three = 5,
- 		/obj/item/wallframe/painting = 5,
-+		/obj/item/wallframe/painting/large = 5,
- 		/obj/item/paint_palette = 2
- 	)
-```
-
-```diff
---- a/code/modules/cargo/packs/service.dm
-+++ b/code/modules/cargo/packs/service.dm
-@@ -23,6 +23,7 @@
- 		/obj/item/canvas/twenty_three_nineteen = 2,
- 		/obj/item/canvas/twenty_three_twenty_three = 2,
- 		/obj/item/wallframe/painting = 2,
-+		/obj/item/wallframe/painting/large = 2,
- 		/obj/item/paint_palette = 2
- 	)
++- type: construction
++  id: PaintingFrameLarge
++  name: large painting frame
++  graph: paintingFrame
++  startNode: start
++  targetNode: paintingFrameLarge
++  category: construction-category-furniture
++  objectType: Structure
 ```

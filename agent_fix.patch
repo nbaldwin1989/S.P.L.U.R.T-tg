@@ -1,59 +1,80 @@
-```yaml
-# Resources/Prototypes/Recipes/Construction/Graphs/structures/paintings.yml
+Here are the code changes to allow large painting frames to be both crafted and bought.
 
-- type: constructionGraph
-  id: PaintingFrameLarge
-  start: start
-  graph:
-    - node: start
-      edges:
-        - to: paintingFrameLarge
-          completed:
-            - !type:SnapToGrid {}
-          steps:
-            - material: WoodPlank
-              amount: 4
-              doAfter: 2
+### 1. Add the Crafting Recipe
 
-    - node: paintingFrameLarge
-      entity: PaintingFrameLarge
-      edges:
-        - to: start
-          completed:
-            - !type:SpawnPrototype
-              prototype: MaterialWoodPlank1
-              amount: 4
-            - !type:DeleteEntity {}
-          steps:
-            - tool: Prying
-              doAfter: 1
+In `code/modules/crafting/recipes.dm` (alongside `/datum/crafting_recipe/painting_frame`):
 
-- type: construction
-  id: PaintingFrameLarge
-  name: large painting frame
-  category: construction-category-furniture
-  graph: PaintingFrameLarge
-  startNode: start
-  targetNode: paintingFrameLarge
-  objectType: Structure
-  placementMode: SnapgridCenter
+```dm
+/datum/crafting_recipe/painting_frame_large
+	name = "Large Painting Frame"
+	result = /obj/item/wallframe/painting/large
+	time = 2 SECONDS
+	reqs = list(
+		/obj/item/stack/sheet/mineral/wood = 3,
+	)
+	category = CAT_ART
 ```
 
-```yaml
-# Resources/Prototypes/Catalog/Cargo/cargo_products.yml
+---
 
-- type: cargoProduct
-  id: ServicePaintingFrameLarge
-  product: PaintingFrameLarge
-  cost: 500
-  category: cargo-category-service
-  group: service
+### 2. Add Large Painting Frames to Cargo
+
+In `code/modules/cargo/packs/service.dm`:
+
+Update the Art Supplies Crate so it includes large painting frames for the large canvases included in the pack, and add a dedicated Painting Frames crate:
+
+```dm
+/datum/supply_pack/service/art
+	name = "Art Supplies Crate"
+	desc = "Contains canvases, painting frames, an easel and a palette."
+	cost = 1500
+	access = ACCESS_LIBRARY
+	contains = list(
+		/obj/structure/easel,
+		/obj/item/canvas/nineteen_nineteen,
+		/obj/item/canvas/nineteen_nineteen,
+		/obj/item/canvas/twenty_three_nineteen,
+		/obj/item/canvas/twenty_three_twenty_three,
+		/obj/item/wallframe/painting,
+		/obj/item/wallframe/painting,
+		/obj/item/wallframe/painting/large,
+		/obj/item/wallframe/painting/large,
+		/obj/item/paint_palette,
+	)
+	crate_name = "art supplies crate"
+
+/datum/supply_pack/service/painting_frames
+	name = "Painting Frames Crate"
+	desc = "Contains two standard painting frames and two large painting frames."
+	cost = 1000
+	access = ACCESS_LIBRARY
+	contains = list(
+		/obj/item/wallframe/painting,
+		/obj/item/wallframe/painting,
+		/obj/item/wallframe/painting/large,
+		/obj/item/wallframe/painting/large,
+	)
+	crate_name = "painting frames crate"
 ```
 
-```yaml
-# Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml
+---
 
-# In CrateArtSupplies contents:
-      - id: PaintingFrameLarge
-        amount: 1
+### 3. Ensure the Item and Structure Definitions are Present
+
+In `code/modules/art/paintings.dm` (if not already defined):
+
+```dm
+/obj/item/wallframe/painting/large
+	name = "large painting frame"
+	desc = "The frame for a large painting, to be mounted on a wall."
+	icon_state = "frame-large-empty"
+	result_path = /obj/structure/sign/painting/large
+	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 3)
+
+/obj/structure/sign/painting/large
+	name = "large painting"
+	desc = "A framed painting."
+	icon_state = "frame-large-empty"
+	build_path = /obj/item/wallframe/painting/large
+	canvas_size = 23
 ```

@@ -1,67 +1,56 @@
-```diff
-diff --git a/Resources/Prototypes/Catalog/Cargo/fun.yml b/Resources/Prototypes/Catalog/Cargo/fun.yml
-index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Catalog/Cargo/fun.yml
-+++ b/Resources/Prototypes/Catalog/Cargo/fun.yml
-@@ -100,6 +100,15 @@
-   cost: 100
-   category: Fun
- 
-+- type: cargoProduct
-+  id: FunPaintingFrameLarge
-+  icon:
-+    sprite: Corvax/Objects/Specific/Art/frames.rsi
-+    state: frame_large
-+  product: PaintingFrameLarge
-+  cost: 200
-+  category: Fun
-+
- - type: cargoProduct
-   id: FunPalette
-   icon:
-diff --git a/Resources/Prototypes/Corvax/Recipes/Construction/art.yml b/Resources/Prototypes/Corvax/Recipes/Construction/art.yml
-index b2c3d4e..f5a6b7c 100644
---- a/Resources/Prototypes/Corvax/Recipes/Construction/art.yml
-+++ b/Resources/Prototypes/Corvax/Recipes/Construction/art.yml
-@@ -42,3 +42,37 @@
-   startNode: start
-   targetNode: paintingFrame
-   category: Structures
-+  objectType: Structure
-+
-+- type: constructionGraph
-+  id: PaintingFrameLarge
-+  start: start
-+  graph:
-+    - node: start
-+      edges:
-+        - to: paintingFrameLarge
-+          completed:
-+            - !type:SnapToGrid {}
-+          steps:
-+            - material: WoodPlank
-+              amount: 4
-+              doAfter: 2
-+
-+    - node: paintingFrameLarge
-+      entity: PaintingFrameLarge
-+      edges:
-+        - to: start
-+          completed:
-+            - !type:SpawnPrototype
-+              prototype: MaterialWoodPlank1
-+              amount: 4
-+            - !type:DeleteEntity {}
-+          steps:
-+            - tool: Screwing
-+              doAfter: 1
-+
-+- type: construction
-+  id: PaintingFrameLarge
-+  name: large painting frame
-+  graph: PaintingFrameLarge
-+  startNode: start
-+  targetNode: paintingFrameLarge
-+  category: Structures
-+  objectType: Structure
+```yaml
+# Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
+- type: entity
+  id: PaintingFrameLarge
+  parent: PaintingFrame
+  name: large painting frame
+  description: An empty large frame waiting for a masterpiece.
+  components:
+  - type: Sprite
+    state: frame_large
+```
+
+```yaml
+# Resources/Prototypes/Cargo/cargo_products.yml
+- type: cargoProduct
+  id: PaintingFrameLarge
+  icon:
+    sprite: Structures/Decoration/paintings.rsi
+    state: frame_large
+  product: PaintingFrameLarge
+  cost: 300
+  category: cargo-product-category-furniture
+  group: cargo-product-group-furniture
+```
+
+```yaml
+# Resources/Prototypes/Recipes/Construction/furniture.yml
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  category: construction-category-furniture
+  graph: PaintingFrameLarge
+  startNode: start
+  targetNode: paintingFrameLarge
+  description: An empty large frame waiting for a masterpiece.
+  objectType: Structure
+```
+
+```yaml
+# Resources/Prototypes/Recipes/Construction/Graphs/Structures/painting_frame_large.yml
+- type: constructionGraph
+  id: PaintingFrameLarge
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: paintingFrameLarge
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: Wood
+              amount: 4
+              doAfter: 2
+    - node: paintingFrameLarge
+      entity: PaintingFrameLarge
 ```

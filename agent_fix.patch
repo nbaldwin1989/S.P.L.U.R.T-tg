@@ -1,100 +1,67 @@
-An implementation resolving this issue requires making `PaintingFrameLarge` craftable via the construction system and purchasable through Cargo (both individually and as part of the art supplies crate).
-
-### 1. `Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml`
-Add the large painting frame edge, node, and construction recipe:
-
-```yaml
-- type: constructionGraph
-  id: PaintingFrame
-  start: start
-  graph:
-    - node: start
-      edges:
-        - to: paintingFrame
-          completed:
-            - !type:SnapToGrid {}
-          steps:
-            - material: WoodPlank
-              amount: 2
-              doAfter: 1
-        - to: paintingFrameLarge
-          completed:
-            - !type:SnapToGrid {}
-          steps:
-            - material: WoodPlank
-              amount: 4
-              doAfter: 2
-    - node: paintingFrame
-      entity: PaintingFrame
-      edges:
-        - to: start
-          completed:
-            - !type:SpawnPrototype
-              prototype: MaterialWoodPlank1
-              amount: 2
-          steps:
-            - tool: Prying
-              doAfter: 1
-    - node: paintingFrameLarge
-      entity: PaintingFrameLarge
-      edges:
-        - to: start
-          completed:
-            - !type:SpawnPrototype
-              prototype: MaterialWoodPlank1
-              amount: 4
-          steps:
-            - tool: Prying
-              doAfter: 2
-
-- type: construction
-  id: PaintingFrame
-  graph: PaintingFrame
-  startNode: start
-  targetNode: paintingFrame
-  category: construction-category-furniture
-
-- type: construction
-  id: PaintingFrameLarge
-  graph: PaintingFrame
-  startNode: start
-  targetNode: paintingFrameLarge
-  category: construction-category-furniture
-```
-
-### 2. `Resources/Prototypes/Entities/Containers/Crates/service.yml`
-Add `PaintingFrameLarge` to the art supplies crate contents:
-
-```yaml
-- type: entity
-  id: CrateArtSupplies
-  parent: CrateGeneric
-  name: art supplies crate
-  description: Contains everything you need to express your artistic creativity.
-  components:
-  - type: StorageFill
-    contents:
-      - id: Palette
-        amount: 1
-      - id: Easel
-        amount: 1
-      - id: Canvas
-        amount: 3
-      - id: CanvasLarge
-        amount: 2
-      - id: PaintingFrame
-        amount: 3
-      - id: PaintingFrameLarge
-        amount: 2
-```
-
-### 3. `Resources/Prototypes/Cargo/cargo_products.yml`
-Add `ServicePaintingFrameLarge` so players can also purchase the large frame individually from Cargo:
-
-```yaml
-- type: cargoProduct
-  id: ServicePaintingFrameLarge
-  product: PaintingFrameLarge
-  cost: 250
-  category: Service
+```diff
+diff --git a/Resources/Prototypes/Catalog/Cargo/fun.yml b/Resources/Prototypes/Catalog/Cargo/fun.yml
+index a1b2c3d..e4f5a6b 100644
+--- a/Resources/Prototypes/Catalog/Cargo/fun.yml
++++ b/Resources/Prototypes/Catalog/Cargo/fun.yml
+@@ -100,6 +100,15 @@
+   cost: 100
+   category: Fun
+ 
++- type: cargoProduct
++  id: FunPaintingFrameLarge
++  icon:
++    sprite: Corvax/Objects/Specific/Art/frames.rsi
++    state: frame_large
++  product: PaintingFrameLarge
++  cost: 200
++  category: Fun
++
+ - type: cargoProduct
+   id: FunPalette
+   icon:
+diff --git a/Resources/Prototypes/Corvax/Recipes/Construction/art.yml b/Resources/Prototypes/Corvax/Recipes/Construction/art.yml
+index b2c3d4e..f5a6b7c 100644
+--- a/Resources/Prototypes/Corvax/Recipes/Construction/art.yml
++++ b/Resources/Prototypes/Corvax/Recipes/Construction/art.yml
+@@ -42,3 +42,37 @@
+   startNode: start
+   targetNode: paintingFrame
+   category: Structures
++  objectType: Structure
++
++- type: constructionGraph
++  id: PaintingFrameLarge
++  start: start
++  graph:
++    - node: start
++      edges:
++        - to: paintingFrameLarge
++          completed:
++            - !type:SnapToGrid {}
++          steps:
++            - material: WoodPlank
++              amount: 4
++              doAfter: 2
++
++    - node: paintingFrameLarge
++      entity: PaintingFrameLarge
++      edges:
++        - to: start
++          completed:
++            - !type:SpawnPrototype
++              prototype: MaterialWoodPlank1
++              amount: 4
++            - !type:DeleteEntity {}
++          steps:
++            - tool: Screwing
++              doAfter: 1
++
++- type: construction
++  id: PaintingFrameLarge
++  name: large painting frame
++  graph: PaintingFrameLarge
++  startNode: start
++  targetNode: paintingFrameLarge
++  category: Structures
++  objectType: Structure
 ```

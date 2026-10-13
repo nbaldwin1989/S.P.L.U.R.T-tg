@@ -1,56 +1,158 @@
-```yaml
-# Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-- type: entity
-  id: PaintingFrameLarge
-  parent: PaintingFrame
-  name: large painting frame
-  description: An empty large frame waiting for a masterpiece.
-  components:
-  - type: Sprite
-    state: frame_large
-```
+An implementation resolving the issue by enabling large painting frames to be both crafted and bought.
+
+### 1. Construction Graph Update
+In `Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml`:
 
 ```yaml
-# Resources/Prototypes/Cargo/cargo_products.yml
-- type: cargoProduct
-  id: PaintingFrameLarge
-  icon:
-    sprite: Structures/Decoration/paintings.rsi
-    state: frame_large
-  product: PaintingFrameLarge
-  cost: 300
-  category: cargo-product-category-furniture
-  group: cargo-product-group-furniture
-```
-
-```yaml
-# Resources/Prototypes/Recipes/Construction/furniture.yml
-- type: construction
-  id: PaintingFrameLarge
-  name: large painting frame
-  category: construction-category-furniture
-  graph: PaintingFrameLarge
-  startNode: start
-  targetNode: paintingFrameLarge
-  description: An empty large frame waiting for a masterpiece.
-  objectType: Structure
-```
-
-```yaml
-# Resources/Prototypes/Recipes/Construction/Graphs/Structures/painting_frame_large.yml
 - type: constructionGraph
-  id: PaintingFrameLarge
+  id: painting_frame
   start: start
   graph:
     - node: start
       edges:
+        - to: paintingFrame
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: WoodPlank
+              amount: 2
+              doAfter: 1
         - to: paintingFrameLarge
           completed:
             - !type:SnapToGrid {}
           steps:
-            - material: Wood
+            - material: WoodPlank
               amount: 4
               doAfter: 2
+
+    - node: paintingFrame
+      entity: PaintingFrame
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 2
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 1
+
     - node: paintingFrameLarge
       entity: PaintingFrameLarge
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 4
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 1
+```
+
+### 2. Construction Recipe
+In `Resources/Prototypes/Recipes/Construction/structures.yml`:
+
+```yaml
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  category: construction-category-structures
+  graph: painting_frame
+  startNode: start
+  targetNode: paintingFrameLarge
+  description: A large empty frame for a painting.
+  icon:
+    sprite: Structures/Decoration/paintings_large.rsi
+    state: frame
+  objectType: Structure
+```
+
+### 3. Painting Frame Entity Component
+In `Resources/Prototypes/Entities/Structures/Decoration/paintings.yml`, ensure the entities reference their respective construction nodes:
+
+```yaml
+- type: entity
+  id: PaintingFrame
+  parent: BaseStructure
+  name: painting frame
+  description: An empty frame for a painting.
+  components:
+  - type: Transform
+    anchored: true
+  - type: Anchorable
+  - type: Sprite
+    sprite: Structures/Decoration/paintings.rsi
+    state: frame
+  - type: Construction
+    graph: painting_frame
+    node: paintingFrame
+
+- type: entity
+  id: PaintingFrameLarge
+  parent: PaintingFrame
+  name: large painting frame
+  description: A large empty frame for a painting.
+  components:
+  - type: Sprite
+    sprite: Structures/Decoration/paintings_large.rsi
+    state: frame
+  - type: Construction
+    graph: painting_frame
+    node: paintingFrameLarge
+```
+
+### 4. Art Supplies Crate Update
+In `Resources/Prototypes/Entities/Containers/Crates/service.yml`, add `PaintingFrameLarge` to `CrateArtSupplies`:
+
+```yaml
+- type: entity
+  id: CrateArtSupplies
+  parent: CrateGenericSteel
+  name: art supplies crate
+  description: A crate containing art supplies.
+  components:
+  - type: StorageFill
+    contents:
+      - id: Easel
+        amount: 1
+      - id: Canvas
+        amount: 2
+      - id: CanvasLarge
+        amount: 1
+      - id: Palette
+        amount: 1
+      - id: Paintbrush
+        amount: 1
+      - id: PaintingFrame
+        amount: 2
+      - id: PaintingFrameLarge
+        amount: 1
+```
+
+### 5. Cargo Order Catalog
+In `Resources/Prototypes/Catalog/Cargo/cargo_service.yml`, add direct cargo purchasing entries:
+
+```yaml
+- type: cargoProduct
+  id: ServicePaintingFrame
+  icon:
+    sprite: Structures/Decoration/paintings.rsi
+    state: frame
+  product: PaintingFrame
+  cost: 100
+  category: Service
+  group: service
+
+- type: cargoProduct
+  id: ServicePaintingFrameLarge
+  icon:
+    sprite: Structures/Decoration/paintings_large.rsi
+    state: frame
+  product: PaintingFrameLarge
+  cost: 200
+  category: Service
+  group: service
 ```

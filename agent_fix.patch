@@ -1,41 +1,74 @@
-```diff
---- a/code/modules/cargo/packs/service.dm
-+++ b/code/modules/cargo/packs/service.dm
-@@ -37,6 +37,7 @@
- 		/obj/item/canvas/twenty_three_nineteen = 2,
- 		/obj/item/canvas/twenty_three_twenty_three = 2,
- 		/obj/item/wallframe/painting = 2,
-+		/obj/item/wallframe/painting/large = 2,
- 		/obj/item/clothing/under/costume/artist,
- 		/obj/item/clothing/head/beret,
- 		/obj/item/paint_palette,
-@@ -44,3 +45,13 @@
- 	)
- 	crate_name = "art supply crate"
- 
-+/datum/supply_pack/service/painting_frames
-+	name = "Painting Frames Crate"
-+	desc = "Contains two regular painting frames and two large painting frames."
-+	cost = 1000
-+	contains = list(
-+		/obj/item/wallframe/painting = 2,
-+		/obj/item/wallframe/painting/large = 2,
-+	)
-+	crate_name = "painting frame crate"
-+
---- a/code/modules/crafting/crafting_recipes.dm
-+++ b/code/modules/crafting/crafting_recipes.dm
-@@ -1025,3 +1025,12 @@
- 	time = 30
- 	category = CAT_FURNITURE
- 
-+/datum/crafting_recipe/painting_frame_large
-+	name = "Large Painting Frame"
-+	result = /obj/item/wallframe/painting/large
-+	reqs = list(
-+		/obj/item/stack/sheet/mineral/wood = 5,
-+	)
-+	time = 40
-+	category = CAT_FURNITURE
-+
+```yaml
+# Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml
+- type: entity
+  id: CratePaintingFramesLarge
+  parent: CrateGenericSteel
+  name: large painting frames crate
+  description: A crate containing large painting frames.
+  components:
+  - type: StorageFill
+    contents:
+      - id: PaintingFrameLarge
+        amount: 2
+```
+
+```yaml
+# Update existing CrateArtSupplies in Resources/Prototypes/Entities/Structures/Storage/Crates/crates.yml
+# Under components -> StorageFill -> contents:
+      - id: PaintingFrameLarge
+        amount: 2
+```
+
+```yaml
+# Resources/Prototypes/Catalog/Cargo/cargo_service.yml
+- type: cargoProduct
+  id: ServicePaintingFramesLarge
+  icon:
+    sprite: Structures/Decoration/paintings.rsi
+    state: frame_large
+  product: CratePaintingFramesLarge
+  cost: 600
+  category: cargo-category-service
+  group: service
+```
+
+```yaml
+# Resources/Prototypes/Recipes/Construction/decorations.yml
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  graph: PaintingFrameLarge
+  startNode: start
+  targetNode: frame
+  category: construction-category-furniture
+  objectType: Structure
+```
+
+```yaml
+# Resources/Prototypes/Recipes/Construction/Graphs/Decorations/paintings.yml
+- type: constructionGraph
+  id: PaintingFrameLarge
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: frame
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: Wood
+              amount: 4
+              doAfter: 1
+    - node: frame
+      entity: PaintingFrameLarge
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 4
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Anchoring
+              doAfter: 1
 ```

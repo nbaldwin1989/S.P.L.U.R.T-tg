@@ -1,60 +1,111 @@
 ```diff
---- a/code/modules/art/paintings.dm
-+++ b/code/modules/art/paintings.dm
-@@ -470,8 +470,16 @@
- 	result_path = /obj/structure/sign/painting
- 	pixel_shift = 28
- 	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 2)
+diff --git a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
+index e3a1234..f5b6789 100644
+--- a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
++++ b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
+@@ -100,3 +100,12 @@
+   cost: 400
+   category: Service
+   group: service
++
++- type: cargoProduct
++  id: ServicePaintingFrameLarge
++  icon:
++    sprite: Structures/Decoration/paintings.rsi
++    state: frame_large
++  product: PaintingFrameLarge
++  cost: 400
++  category: Service
++  group: service
+diff --git a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
+index b8c9012..d3e4567 100644
+--- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
++++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
+@@ -25,3 +25,24 @@
+   - type: Construction
+     graph: PaintingFrame
+     node: paintingFrame
++
++- type: entity
++  id: PaintingFrameLarge
++  parent: PaintingFrame
++  name: large painting frame
++  description: A frame for displaying large paintings.
++  components:
++  - type: Sprite
++    sprite: Structures/Decoration/paintings.rsi
++    state: frame_large
++  - type: PaintingFrame
++    size: Large
++  - type: Construction
++    graph: PaintingFrame
++    node: paintingFrameLarge
++  - type: Destructible
++    thresholds:
++    - trigger:
++        !type:DamageTrigger
++        damage: 50
++      behaviors:
++      - !type:DoActsBehavior
++        acts: ["Destruction"]
++      - !type:SpawnEntitiesBehavior
++        spawn:
++          MaterialWoodPlank1:
++            min: 2
++            max: 2
+diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
+index c7d8901..a1b2345 100644
+--- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
++++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
+@@ -10,6 +10,12 @@
+           steps:
+             - material: Wood
+               amount: 1
+               doAfter: 1
++        - to: paintingFrameLarge
++          completed:
++            - !type:SnapToGrid {}
++          steps:
++            - material: Wood
++              amount: 2
++              doAfter: 2
  
-+/obj/item/wallframe/painting/large
-+	name = "large painting frame"
-+	desc = "A large frame for hanging paintings."
-+	icon_state = "frame-large-empty"
-+	result_path = /obj/structure/sign/painting/large
-+	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 4)
+     - node: paintingFrame
+       entity: PaintingFrame
+@@ -20,3 +26,12 @@
+           steps:
+             - tool: Prying
+               doAfter: 1
 +
- /obj/structure/sign/painting/large
- 	name = "large painting frame"
- 	desc = "A large framed painting."
- 	icon_state = "frame-large-empty"
- 	base_icon_state = "frame-large"
- 	size_x = 23
- 	size_y = 23
-+	wallframe_type = /obj/item/wallframe/painting/large
---- a/code/modules/crafting/recipes.dm
-+++ b/code/modules/crafting/recipes.dm
-@@ -1025,6 +1025,16 @@
- 	category = CAT_FURNITURE
- 
-+/datum/crafting_recipe/large_painting_frame
-+	name = "Large Painting Frame"
-+	result = /obj/item/wallframe/painting/large
-+	reqs = list(
-+		/obj/item/stack/sheet/mineral/wood = 4,
-+	)
-+	time = 20
-+	category = CAT_FURNITURE
++    - node: paintingFrameLarge
++      entity: PaintingFrameLarge
++      edges:
++        - to: start
++          completed:
++            - !type:SpawnPrototype
++              prototype: MaterialWoodPlank1
++              amount: 2
++          steps:
++            - tool: Prying
++              doAfter: 1
+diff --git a/Resources/Prototypes/Recipes/Construction/furniture.yml b/Resources/Prototypes/Recipes/Construction/furniture.yml
+index d2e3456..f7a8901 100644
+--- a/Resources/Prototypes/Recipes/Construction/furniture.yml
++++ b/Resources/Prototypes/Recipes/Construction/furniture.yml
+@@ -80,3 +80,14 @@
+   icon:
+     sprite: Structures/Decoration/paintings.rsi
+     state: frame
 +
---- a/code/modules/cargo/packs/service.dm
-+++ b/code/modules/cargo/packs/service.dm
-@@ -310,6 +310,7 @@
- 		/obj/item/canvas/nineteen_nineteen = 2,
- 		/obj/item/canvas/twentythree_nineteen = 2,
- 		/obj/item/canvas/twentythree_twentythree = 2,
- 		/obj/item/wallframe/painting = 2,
-+		/obj/item/wallframe/painting/large = 2,
- 		/obj/item/storage/crayons,
- 		/obj/item/paint_palette,
- 		/obj/item/brush,
-@@ -317,3 +318,12 @@
- 	crate_name = "art supplies crate"
-+
-+/datum/supply_pack/service/large_painting_frames
-+	name = "Large Painting Frames Crate"
-+	desc = "Contains four large frames for hanging paintings."
-+	cost = 1000
-+	contains = list(
-+		/obj/item/wallframe/painting/large = 4,
-+	)
-+	crate_name = "large painting frames crate"
++- type: construction
++  id: PaintingFrameLarge
++  name: large painting frame
++  category: construction-category-furniture
++  graph: PaintingFrame
++  startNode: start
++  targetNode: paintingFrameLarge
++  description: A large frame for displaying paintings.
++  icon:
++    sprite: Structures/Decoration/paintings.rsi
+    state: frame_large
 ```

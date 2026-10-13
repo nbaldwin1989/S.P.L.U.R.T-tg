@@ -1,85 +1,104 @@
-```diff
-diff --git a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
-index e234567..89abcde 100644
---- a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
-+++ b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
-@@ -105,6 +105,14 @@
-   category: cargo-category-service
-   group: service
- 
-+- type: cargoProduct
-+  id: ServicePaintingFrameLarge
-+  icon:
-+    sprite: Structures/Decoration/paintings_large.rsi
-+    state: frame
-+  product: PaintingFrameLarge
-+  cost: 400
-+  category: cargo-category-service
-+  group: service
-+
- - type: cargoProduct
-   id: ServiceJanitorialFlatpacks
-   product: CrateServiceJanitorialFlatpacks
-diff --git a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-index a123456..b789cde 100644
---- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-+++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-@@ -26,3 +26,6 @@
-   components:
-   - type: Sprite
-     sprite: Structures/Decoration/paintings_large.rsi
-+  - type: Construction
-+    graph: paintingFrame
-+    node: paintingFrameLarge
-diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml
-index c345678..d901234 100644
---- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/paintings.yml
-@@ -10,6 +10,13 @@
-           steps:
-             - material: Wood
-               amount: 2
-               doAfter: 1
-+        - to: paintingFrameLarge
-+          completed:
-+            - !type:SnapToGrid
-+              southRotation: true
-+          steps:
-+            - material: Wood
-+              amount: 4
-+              doAfter: 2
-     - node: paintingFrame
-       entity: PaintingFrame
-       edges:
-@@ -22,6 +29,18 @@
-           steps:
-             - tool: Prying
-               doAfter: 1
-+    - node: paintingFrameLarge
-+      entity: PaintingFrameLarge
-+      edges:
-+        - to: start
-+          completed:
-+            - !type:SpawnPrototype
-+              prototype: MaterialWoodPlank
-+              amount: 4
-+            - !type:DeleteEntity {}
-+          steps:
-+            - tool: Prying
-+              doAfter: 1
- 
- - type: construction
-   id: PaintingFrame
-@@ -32,3 +51,12 @@
-   category: construction-category-furniture
-   objectType: Structure
-+
-+- type: construction
-+  id: PaintingFrameLarge
-+  name: large painting frame
-+  graph: paintingFrame
-+  startNode: start
-+  targetNode: paintingFrameLarge
-+  category: construction-category-furniture
-+  objectType: Structure
+```yaml
+# In Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml (or graph definition for painting frames):
+
+- type: constructionGraph
+  id: paintingFrame
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: paintingFrame
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: WoodPlank
+              amount: 2
+              doAfter: 1
+        - to: paintingFrameLarge
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: WoodPlank
+              amount: 4
+              doAfter: 2
+
+    - node: paintingFrame
+      entity: PaintingFrame
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 2
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 1
+
+    - node: paintingFrameLarge
+      entity: PaintingFrameLarge
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 4
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 2
+```
+
+```yaml
+# In Resources/Prototypes/Recipes/Construction/furniture.yml:
+
+- type: construction
+  id: paintingFrame
+  name: painting frame
+  graph: paintingFrame
+  startNode: start
+  targetNode: paintingFrame
+  category: construction-category-furniture
+
+- type: construction
+  id: paintingFrameLarge
+  name: large painting frame
+  graph: paintingFrame
+  startNode: start
+  targetNode: paintingFrameLarge
+  category: construction-category-furniture
+```
+
+```yaml
+# In Resources/Prototypes/Entities/Structures/Decoration/paintings.yml:
+
+- type: entity
+  id: PaintingFrameLarge
+  parent: PaintingFrame
+  name: large painting frame
+  components:
+  - type: Sprite
+    sprite: Structures/Decoration/paintings.rsi
+    state: frame_large
+  - type: Construction
+    graph: paintingFrame
+    node: paintingFrameLarge
+```
+
+```yaml
+# In Resources/Prototypes/Entities/Containers/Crates/crates.yml (under CrateArtSupplies StorageFill contents):
+
+    contents:
+      - id: Paintbrush
+        amount: 2
+      - id: Palette
+        amount: 2
+      - id: Canvas
+        amount: 4
+      - id: CanvasLarge
+        amount: 2
+      - id: PaintingFrame
+        amount: 2
+      - id: PaintingFrameLarge
+        amount: 2
 ```

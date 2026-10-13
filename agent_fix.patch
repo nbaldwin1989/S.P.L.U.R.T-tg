@@ -1,0 +1,78 @@
+An implementation to allow large painting frames to be both crafted and bought in cargo:
+
+### 1. `Resources/Prototypes/Entities/Structures/Decoration/paintings.yml`
+Add the `Construction` component (and destructible behavior with appropriate material drops) to `PaintingFrameLarge`:
+
+```yaml
+  - type: Construction
+    graph: PaintingFrameLarge
+    node: paintingFrameLarge
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          MaterialWoodPlank1:
+            min: 2
+            max: 4
+```
+
+### 2. `Resources/Prototypes/Recipes/Construction/Graphs/Structures/paintings.yml`
+Add the construction graph and construction recipe for `PaintingFrameLarge`:
+
+```yaml
+- type: constructionGraph
+  id: PaintingFrameLarge
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: paintingFrameLarge
+          completed:
+            - !type:SnapToGrid {}
+          steps:
+            - material: Wood
+              amount: 4
+              doAfter: 2
+    - node: paintingFrameLarge
+      entity: PaintingFrameLarge
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 4
+            - !type:DeleteEntity {}
+          steps:
+            - tool: Prying
+              doAfter: 1
+
+- type: construction
+  id: PaintingFrameLarge
+  name: large painting frame
+  graph: PaintingFrameLarge
+  startNode: start
+  targetNode: paintingFrameLarge
+  category: Structures
+  objectType: Structure
+```
+
+### 3. `Resources/Prototypes/Cargo/cargo_product.yml`
+Add the cargo product entry for `PaintingFrameLarge` under the Service category:
+
+```yaml
+- type: cargoProduct
+  id: ServicePaintingFrameLarge
+  icon:
+    sprite: Structures/Decoration/paintings.rsi
+    state: frame_large
+  product: PaintingFrameLarge
+  cost: 500
+  category: Service
+  group: market
+```

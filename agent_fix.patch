@@ -1,69 +1,106 @@
 ```diff
-diff --git a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-index e9cfbf324e..39e557b7f1 100644
---- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-+++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
-@@ -62,6 +62,9 @@
-   name: large painting frame
-   parent: PaintingBaseLarge
-   components:
-+  - type: Construction
-+    graph: painting_frame
-+    node: painting_frame_large
-   - type: ItemSlots
-     slots:
-       canvas:
-diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml b/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml
-index b312ef543b..8e8c1dd772 100644
---- a/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/structures/painting_frame.yml
-@@ -8,6 +8,10 @@
-           steps:
-             - material: WoodPlank
-               amount: 2
-+        - to: painting_frame_large
-+          steps:
-+            - material: WoodPlank
-+              amount: 4
-               doAfter: 2
+--- a/code/modules/art/paintings.dm
++++ b/code/modules/art/paintings.dm
+@@ -5,6 +5,7 @@
+ 	var/obj/item/canvas/current_canvas
+ 	var/persistence_id
+ 	var/large = FALSE
++	var/wallframe_type = /obj/item/wallframe/painting
  
-     - node: painting_frame
-@@ -21,3 +25,15 @@
-           steps:
-             - tool: Prying
-               doAfter: 2
-+
-+    - node: painting_frame_large
-+      entity: PaintingFrameLarge
-+      edges:
-+        - to: start
-+          completed:
-+            - !type:SpawnPrototype
-+              prototype: MaterialWoodPlank1
-+              amount: 4
-+            - !type:DeleteEntity {}
-+          steps:
-+            - tool: Prying
-+              doAfter: 2
-diff --git a/Resources/Prototypes/Recipes/Construction/structures.yml b/Resources/Prototypes/Recipes/Construction/structures.yml
-index dbe8bc172c..7bf5dc4e7a 100644
---- a/Resources/Prototypes/Recipes/Construction/structures.yml
-+++ b/Resources/Prototypes/Recipes/Construction/structures.yml
-@@ -107,6 +107,15 @@
-   objectType: Structure
-   placementMode: SnapgridCenter
+ /obj/structure/sign/painting/examine(mob/user)
+ 	. = ..()
+@@ -42,6 +43,7 @@
+ 	name = "large painting"
+ 	desc = "A large work of art."
+ 	icon_state = "frame_large"
++	wallframe_type = /obj/item/wallframe/painting/large
+ 	large = TRUE
  
-+- type: construction
-+  id: PaintingFrameLarge
-+  name: large painting frame
-+  graph: painting_frame
-+  startNode: start
-+  targetNode: painting_frame_large
-+  category: construction-category-structures
-+  objectType: Structure
-+  placementMode: SnapgridCenter
+ /obj/structure/sign/painting/deconstruct(disassembled = TRUE)
+@@ -49,7 +51,7 @@
+ 		if(current_canvas)
+ 			current_canvas.forceMove(drop_location())
+ 			current_canvas = null
+-		new /obj/item/wallframe/painting(drop_location())
++		new wallframe_type(drop_location())
+ 	qdel(src)
+ 
+ /obj/item/wallframe/painting
+@@ -60,3 +62,10 @@
+ 	result_path = /obj/structure/sign/painting
+ 	pixel_shift = 28
+ 	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 2)
 +
- - type: construction
-   id: FishTank
-   name: fish tank
++/obj/item/wallframe/painting/large
++	name = "large painting frame"
++	desc = "The frame for a large painting, to be hung on a wall."
++	icon_state = "frame_large"
++	result_path = /obj/structure/sign/painting/large
++	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 4)
+```
+
+```diff
+--- a/code/modules/crafting/recipes.dm
++++ b/code/modules/crafting/recipes.dm
+@@ -625,6 +625,16 @@
+ 	time = 30
+ 	category = CAT_ENTERTAINMENT
+ 
++/datum/crafting_recipe/painting_frame_large
++	name = "Large Painting Frame"
++	result = /obj/item/wallframe/painting/large
++	reqs = list(
++		/obj/item/stack/sheet/mineral/wood = 4,
++	)
++	time = 30
++	category = CAT_ENTERTAINMENT
++
+ /datum/crafting_recipe/canvas_11_11
+ 	name = "Canvas (11x11)"
+ 	result = /obj/item/canvas
+```
+
+```diff
+--- a/code/modules/cargo/packs/service.dm
++++ b/code/modules/cargo/packs/service.dm
+@@ -102,6 +102,7 @@
+ 		/obj/item/canvas,
+ 		/obj/item/wallframe/painting,
+ 		/obj/item/wallframe/painting,
++		/obj/item/wallframe/painting/large,
+ 		/obj/item/paint_palette,
+ 		/obj/item/paint_brush,
+ 		/obj/item/paint_brush,
+@@ -109,6 +110,32 @@
+ 	crate_name = "art supplies crate"
+ 	crate_type = /obj/structure/closet/crate
+ 
++/datum/supply_pack/service/large_art
++	name = "Large Art Supplies Crate"
++	desc = "Contains large canvases and large painting frames for larger works of art."
++	cost = 2000
++	contains = list(
++		/obj/item/canvas/nineteen_nineteen,
++		/obj/item/canvas/twentythree_nineteen,
++		/obj/item/canvas/twentythree_twentythree,
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
++		/obj/item/paint_palette,
++		/obj/item/paint_brush,
++	)
++	crate_name = "large art supplies crate"
++	crate_type = /obj/structure/closet/crate
++
++/datum/supply_pack/service/painting_frames
++	name = "Painting Frames Crate"
++	desc = "Contains an assortment of standard and large painting frames."
++	cost = 1200
++	contains = list(
++		/obj/item/wallframe/painting,
++		/obj/item/wallframe/painting,
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
++	)
++	crate_name = "painting frames crate"
++	crate_type = /obj/structure/closet/crate
 ```

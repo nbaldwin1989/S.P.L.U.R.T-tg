@@ -1,24 +1,24 @@
 ```diff
-diff --git a/Resources/Prototypes/Entities/Structures/Wallmounts/paintings.yml b/Resources/Prototypes/Entities/Structures/Wallmounts/paintings.yml
+diff --git a/Resources/Prototypes/Entities/Containers/Crates/fun.yml b/Resources/Prototypes/Entities/Containers/Crates/fun.yml
 index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Entities/Structures/Wallmounts/paintings.yml
-+++ b/Resources/Prototypes/Entities/Structures/Wallmounts/paintings.yml
-@@ -20,3 +20,6 @@
-   components:
-   - type: Sprite
-     state: frame_large
-+  - type: Construction
-+    graph: PaintingFrame
-+    node: paintingFrameLarge
-diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/structures/paintings.yml b/Resources/Prototypes/Recipes/Construction/Graphs/structures/paintings.yml
+--- a/Resources/Prototypes/Entities/Containers/Crates/fun.yml
++++ b/Resources/Prototypes/Entities/Containers/Crates/fun.yml
+@@ -25,3 +25,5 @@
+       - id: CanvasLarge
+         amount: 1
+       - id: PaintingFrame
+         amount: 2
++      - id: PaintingFrameLarge
++        amount: 2
+diff --git a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
 index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Recipes/Construction/Graphs/structures/paintings.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/structures/paintings.yml
-@@ -10,6 +10,12 @@
+--- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
++++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
+@@ -10,6 +10,13 @@
            steps:
              - material: WoodPlank
                amount: 2
-               doAfter: 1
+               doAfter: 2
 +        - to: paintingFrameLarge
 +          completed:
 +            - !type:SnapToGrid {}
@@ -28,10 +28,11 @@ index a1b2c3d..e4f5a6b 100644
 +              doAfter: 2
      - node: paintingFrame
        entity: PaintingFrame
-@@ -21,3 +27,14 @@
+       edges:
+@@ -21,3 +28,14 @@
            steps:
              - tool: Prying
-               doAfter: 1
+               doAfter: 2
 +    - node: paintingFrameLarge
 +      entity: PaintingFrameLarge
 +      edges:
@@ -43,54 +44,21 @@ index a1b2c3d..e4f5a6b 100644
 +            - !type:DeleteEntity {}
 +          steps:
 +            - tool: Prying
-+              doAfter: 1
-diff --git a/Resources/Prototypes/Recipes/Construction/structures.yml b/Resources/Prototypes/Recipes/Construction/structures.yml
++              doAfter: 2
+diff --git a/Resources/Prototypes/Recipes/Construction/furniture.yml b/Resources/Prototypes/Recipes/Construction/furniture.yml
 index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/Recipes/Construction/structures.yml
-+++ b/Resources/Prototypes/Recipes/Construction/structures.yml
-@@ -100,3 +100,14 @@
-   description: A frame to hang paintings.
-   icon:
-     sprite: Structures/Wallmounts/paintings.rsi
-     state: frame
+--- a/Resources/Prototypes/Recipes/Construction/furniture.yml
++++ b/Resources/Prototypes/Recipes/Construction/furniture.yml
+@@ -40,3 +40,10 @@
+   graph: PaintingFrame
+   startNode: start
+   targetNode: paintingFrame
+   category: construction-category-furniture
 +
 +- type: construction
 +  id: PaintingFrameLarge
-+  name: large painting frame
-+  category: construction-category-structures
 +  graph: PaintingFrame
 +  startNode: start
 +  targetNode: paintingFrameLarge
-+  description: A large frame to hang paintings.
-+  icon:
-+    sprite: Structures/Wallmounts/paintings.rsi
-+    state: frame_large
-diff --git a/Resources/Prototypes/_NF/Cargo/cargo_products.yml b/Resources/Prototypes/_NF/Cargo/cargo_products.yml
-index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/_NF/Cargo/cargo_products.yml
-+++ b/Resources/Prototypes/_NF/Cargo/cargo_products.yml
-@@ -50,3 +50,13 @@
-   product: PaintingFrame
-   cost: 150
-   category: cargo-category-decorations
-   group: market
-+
-+- type: cargoProduct
-+  id: PaintingFrameLarge
-+  icon:
-+    sprite: Structures/Wallmounts/paintings.rsi
-+    state: frame_large
-+  product: PaintingFrameLarge
-+  cost: 250
-+  category: cargo-category-decorations
-+  group: market
-diff --git a/Resources/Prototypes/VendingMachines/Inventories/colormate.yml b/Resources/Prototypes/VendingMachines/Inventories/colormate.yml
-index a1b2c3d..e4f5a6b 100644
---- a/Resources/Prototypes/VendingMachines/Inventories/colormate.yml
-+++ b/Resources/Prototypes/VendingMachines/Inventories/colormate.yml
-@@ -12,3 +12,4 @@
-     Canvas: 4
-     CanvasLarge: 4
-     PaintingFrame: 4
-+    PaintingFrameLarge: 2
++  category: construction-category-furniture
 ```

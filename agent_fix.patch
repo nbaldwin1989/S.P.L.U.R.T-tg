@@ -1,60 +1,91 @@
 ```diff
---- a/Resources/Prototypes/Recipes/Construction/Graphs/items/art.yml
-+++ b/Resources/Prototypes/Recipes/Construction/Graphs/items/art.yml
-@@ -51,3 +51,20 @@
-   startNode: start
-   targetNode: paintingFrame
-   category: construction-category-items
-+  objectType: Item
+--- a/code/modules/art/paintings.dm
++++ b/code/modules/art/paintings.dm
+@@ -5,6 +5,7 @@
+ 	icon_state = "frame-empty"
+ 	var/obj/item/canvas/current_canvas
+ 	var/framed = FALSE
++	var/wallframe_type = /obj/item/wallframe/painting
+ 
+ /obj/structure/sign/painting/examine(mob/user)
+ 	. = ..()
+@@ -42,7 +43,7 @@
+ 		if(current_canvas)
+ 			current_canvas.forceMove(drop_location())
+ 			current_canvas = null
+-		new /obj/item/wallframe/painting(drop_location())
++		new wallframe_type(drop_location())
+ 		qdel(src)
+ 	return TRUE
+ 
+@@ -87,14 +88,23 @@
+ 		if(current_canvas)
+ 			current_canvas.forceMove(drop_location())
+ 			current_canvas = null
+-		new /obj/item/wallframe/painting(drop_location())
++		new wallframe_type(drop_location())
+ 	else
+ 		new /obj/item/stack/sheet/mineral/wood(drop_location(), 2)
+ 	qdel(src)
+ 
+ /obj/structure/sign/painting/large
+ 	name = "large painting"
+ 	icon_state = "frame-large-empty"
++	wallframe_type = /obj/item/wallframe/painting/large
 +
-+- type: constructionGraph
-+  id: PaintingFrameLarge
-+  start: start
-+  graph:
-+    - node: start
-+      edges:
-+        - to: paintingFrameLarge
-+          steps:
-+            - material: WoodPlank
-+              amount: 2
-+    - node: paintingFrameLarge
-+      entity: PaintingFrameLarge
++/obj/item/wallframe/painting/large
++	name = "large painting frame"
++	desc = "The frame for a large painting. Requires wood to produce."
++	icon = 'icons/obj/art/paintings.dmi'
++	icon_state = "frame-large-empty"
++	result_path = /obj/structure/sign/painting/large
++	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 4)
+ 
+ /obj/item/wallframe/painting
+ 	name = "painting frame"
+--- a/code/modules/crafting/recipes.dm
++++ b/code/modules/crafting/recipes.dm
+@@ -1071,6 +1071,16 @@
+ 	)
+ 	category = CAT_ENTERTAINMENT
+ 
++/datum/crafting_recipe/large_painting_frame
++	name = "Large Painting Frame"
++	result = /obj/item/wallframe/painting/large
++	time = 40
++	reqs = list(
++		/obj/item/stack/sheet/mineral/wood = 4,
++	)
++	category = CAT_ENTERTAINMENT
 +
-+- type: construction
-+  id: PaintingFrameLarge
-+  graph: PaintingFrameLarge
-+  startNode: start
-+  targetNode: paintingFrameLarge
-+  category: construction-category-items
-+  objectType: Item
-```
-
-```diff
---- a/Resources/Prototypes/Entities/Containers/Crates/fun.yml
-+++ b/Resources/Prototypes/Entities/Containers/Crates/fun.yml
-@@ -79,3 +79,5 @@
-       - id: Paintbrush
-         amount: 2
-       - id: PaintingFrame
-         amount: 2
-+      - id: PaintingFrameLarge
-+        amount: 2
-```
-
-```diff
---- a/Resources/Prototypes/Catalog/Cargo/fun.yml
-+++ b/Resources/Prototypes/Catalog/Cargo/fun.yml
-@@ -107,3 +107,12 @@
-   category: Fun
-   group: market
+ /datum/crafting_recipe/easel
+ 	name = "Easel"
+ 	result = /obj/structure/easel
+--- a/code/modules/cargo/packs/service.dm
++++ b/code/modules/cargo/packs/service.dm
+@@ -79,10 +79,24 @@
+ 		/obj/item/canvas/twentythree_twentythree,
+ 		/obj/item/wallframe/painting,
+ 		/obj/item/wallframe/painting,
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
+ 		/obj/item/storage/crayons,
+ 		/obj/item/paint_palette,
+ 	)
+ 	crate_name = "art supplies crate"
+ 
++/datum/supply_pack/service/large_painting_frames
++	name = "Large Painting Frames Crate"
++	desc = "Contains three large painting frames for displaying large pieces of art."
++	cost = 1000
++	access = ACCESS_SERVICE
++	contains = list(
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
++		/obj/item/wallframe/painting/large,
++	)
++	crate_name = "large painting frames crate"
 +
-+- type: cargoProduct
-+  id: FunPaintingFrameLarge
-+  icon:
-+    sprite: Objects/Specific/Art/frames.rsi
-+    state: frame_large
-+  product: PaintingFrameLarge
-+  cost: 150
-+  category: Fun
-+  group: market
+ /datum/supply_pack/service/clown
+ 	name = "Clown Crate"
 ```

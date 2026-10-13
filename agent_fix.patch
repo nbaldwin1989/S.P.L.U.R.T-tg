@@ -1,91 +1,128 @@
+An implementation resolving the issue by enabling large painting frames to be crafted via the construction menu and purchased via cargo:
+
+### 1. Construction Graph and Recipe
+Add `paintingFrameLarge` node, edges, and the construction recipe to `Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml`:
+
 ```diff
---- a/code/modules/art/paintings.dm
-+++ b/code/modules/art/paintings.dm
-@@ -5,6 +5,7 @@
- 	icon_state = "frame-empty"
- 	var/obj/item/canvas/current_canvas
- 	var/framed = FALSE
-+	var/wallframe_type = /obj/item/wallframe/painting
+--- a/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
++++ b/Resources/Prototypes/Recipes/Construction/Graphs/furniture/painting_frame.yml
+@@ -9,6 +9,12 @@
+           steps:
+             - material: WoodPlank
+               amount: 1
+               doAfter: 1
++        - to: paintingFrameLarge
++          completed:
++            - !type:SnapToGrid {}
++          steps:
++            - material: WoodPlank
++              amount: 2
++              doAfter: 2
  
- /obj/structure/sign/painting/examine(mob/user)
- 	. = ..()
-@@ -42,7 +43,7 @@
- 		if(current_canvas)
- 			current_canvas.forceMove(drop_location())
- 			current_canvas = null
--		new /obj/item/wallframe/painting(drop_location())
-+		new wallframe_type(drop_location())
- 		qdel(src)
- 	return TRUE
- 
-@@ -87,14 +88,23 @@
- 		if(current_canvas)
- 			current_canvas.forceMove(drop_location())
- 			current_canvas = null
--		new /obj/item/wallframe/painting(drop_location())
-+		new wallframe_type(drop_location())
- 	else
- 		new /obj/item/stack/sheet/mineral/wood(drop_location(), 2)
- 	qdel(src)
- 
- /obj/structure/sign/painting/large
- 	name = "large painting"
- 	icon_state = "frame-large-empty"
-+	wallframe_type = /obj/item/wallframe/painting/large
+     - node: paintingFrame
+       entity: PaintingFrame
+@@ -20,6 +26,17 @@
+             - !type:DeleteEntity {}
+           steps:
+             - tool: Prying
+               doAfter: 1
 +
-+/obj/item/wallframe/painting/large
-+	name = "large painting frame"
-+	desc = "The frame for a large painting. Requires wood to produce."
-+	icon = 'icons/obj/art/paintings.dmi'
-+	icon_state = "frame-large-empty"
-+	result_path = /obj/structure/sign/painting/large
-+	custom_materials = list(/datum/material/wood = SHEET_MATERIAL_AMOUNT * 4)
++    - node: paintingFrameLarge
++      entity: PaintingFrameLarge
++      edges:
++        - to: start
++          completed:
++            - !type:SpawnPrototype
++              prototype: MaterialWoodPlank1
++              amount: 2
++            - !type:DeleteEntity {}
++          steps:
++            - tool: Prying
++              doAfter: 1
  
- /obj/item/wallframe/painting
- 	name = "painting frame"
---- a/code/modules/crafting/recipes.dm
-+++ b/code/modules/crafting/recipes.dm
-@@ -1071,6 +1071,16 @@
- 	)
- 	category = CAT_ENTERTAINMENT
- 
-+/datum/crafting_recipe/large_painting_frame
-+	name = "Large Painting Frame"
-+	result = /obj/item/wallframe/painting/large
-+	time = 40
-+	reqs = list(
-+		/obj/item/stack/sheet/mineral/wood = 4,
-+	)
-+	category = CAT_ENTERTAINMENT
+ - type: construction
+   id: PaintingFrame
+@@ -30,3 +47,12 @@
+   description: painting-frame-construction-description
+   icon:
+     sprite: Structures/Decoration/paintings.rsi
+     state: frame
 +
- /datum/crafting_recipe/easel
- 	name = "Easel"
- 	result = /obj/structure/easel
---- a/code/modules/cargo/packs/service.dm
-+++ b/code/modules/cargo/packs/service.dm
-@@ -79,10 +79,24 @@
- 		/obj/item/canvas/twentythree_twentythree,
- 		/obj/item/wallframe/painting,
- 		/obj/item/wallframe/painting,
-+		/obj/item/wallframe/painting/large,
-+		/obj/item/wallframe/painting/large,
- 		/obj/item/storage/crayons,
- 		/obj/item/paint_palette,
- 	)
- 	crate_name = "art supplies crate"
- 
-+/datum/supply_pack/service/large_painting_frames
-+	name = "Large Painting Frames Crate"
-+	desc = "Contains three large painting frames for displaying large pieces of art."
-+	cost = 1000
-+	access = ACCESS_SERVICE
-+	contains = list(
-+		/obj/item/wallframe/painting/large,
-+		/obj/item/wallframe/painting/large,
-+		/obj/item/wallframe/painting/large,
-+	)
-+	crate_name = "large painting frames crate"
++- type: construction
++  id: PaintingFrameLarge
++  graph: PaintingFrame
++  startNode: start
++  targetNode: paintingFrameLarge
++  category: construction-category-furniture
++  description: painting-frame-large-construction-description
++  icon:
++    sprite: Structures/Decoration/paintings.rsi
++    state: frame_large
+```
+
+---
+
+### 2. Localization
+Add the construction description in `Resources/Locale/en-US/construction/construction-graphs.ftl`:
+
+```diff
+--- a/Resources/Locale/en-US/construction/construction-graphs.ftl
++++ b/Resources/Locale/en-US/construction/construction-graphs.ftl
+@@ -52,3 +52,4 @@
+ painting-frame-construction-description = A frame for a painting.
++painting-frame-large-construction-description = A large frame for a painting.
+```
+
+---
+
+### 3. Entity Construction Component
+Link `PaintingFrameLarge` to the construction graph node in `Resources/Prototypes/Entities/Structures/Decoration/paintings.yml`:
+
+```diff
+--- a/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
++++ b/Resources/Prototypes/Entities/Structures/Decoration/paintings.yml
+@@ -22,6 +22,9 @@
+   components:
+   - type: Sprite
+     state: frame_large
++  - type: Construction
++    graph: PaintingFrame
++    node: paintingFrameLarge
+   - type: ItemSlots
+     slots:
+       canvas:
+```
+
+---
+
+### 4. Cargo Order Products
+Add cargo products so painting frames can be purchased in `Resources/Prototypes/Catalog/Cargo/cargo_service.yml`:
+
+```diff
+--- a/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
++++ b/Resources/Prototypes/Catalog/Cargo/cargo_service.yml
+@@ -104,3 +104,21 @@
+   cost: 650
+   category: Service
+   group: service
 +
- /datum/supply_pack/service/clown
- 	name = "Clown Crate"
++- type: cargoProduct
++  id: ServicePaintingFrame
++  icon:
++    sprite: Structures/Decoration/paintings.rsi
++    state: frame
++  product: PaintingFrame
++  cost: 100
++  category: Service
++  group: service
++
++- type: cargoProduct
++  id: ServicePaintingFrameLarge
++  icon:
++    sprite: Structures/Decoration/paintings.rsi
++    state: frame_large
++  product: PaintingFrameLarge
++  cost: 150
++  category: Service
++  group: service
 ```
